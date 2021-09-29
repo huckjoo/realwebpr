@@ -1,0 +1,34 @@
+{% extends "main.html" %} {% block contents %}
+<div class="container">
+  <form method="POST" action="{{url_for('board_write')}}">
+    <div class="form-group">
+      <label for="name">작성자</label>
+      <input class="form-control" id="name" type="text" name="name" />
+    </div>
+    <div class="form-group">
+      <label for="title">제목</label>
+      <input
+        placeholder="제목을 입력하세요"
+        class="form-control"
+        id="title"
+        type="text"
+        name="title"
+      />
+    </div>
+    <div class="form-group">
+      <label for="contents">내용</label>
+      <textarea
+        placeholder="내용을 입력하세요"
+        rows="8"
+        class="form-control"
+        id="contents"
+        type="text"
+        name="contents"
+      ></textarea>
+    </div>
+    <div class="text-center">
+      <input class="btn btn-primary" type="submit" value="작성하기" />
+    </div>
+  </form>
+</div>
+{% endblock %}

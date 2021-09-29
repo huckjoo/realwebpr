@@ -1,13 +1,56 @@
+from bson.objectid import ObjectId
 from flask import Flask, render_template
 from flask import request
 from flask_pymongo import PyMongo
-
 from datetime import datetime
+from bson.objectid import ObjectId
+from flask import abort, redirect, url_for
+import time
+
 
 app = Flask(__name__)
 # flask-pymongo사용법
-app.config["MONGO_URI"] = "mongodb://localhost:27017/realweb"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/dbapp2"
 mongo = PyMongo(app)
+
+
+@app.route("/list")
+def lists():
+    board = mongo.db.board
+    datas = board.find({})
+    return render_template("list.html", datas=datas)
+
+
+# flask에서 제공되는 filter
+@app.template_filter("formatdatetime")
+def format_datetime(value):  # value를 시간값으로 받는다.
+    if value is None:
+        return ""
+    now_timestamp = time.time()  # 게시물을 작성하는 사람 시간
+    offset = datetime.fromtimestamp(now_timestamp) - datetime.utcfromtimestamp(
+        now_timestamp
+    )
+    value = datetime.fromtimestamp(int(value) / 1000) + offset  # milisecond로 다시변경
+    return value.strftime("%Y-%m-%d %H:%M:%S")
+
+
+@app.route("/view/<idx>")
+def board_view(idx):
+    # /view?idx=id값&a=10&b=20에서 값을 뽑아오는 방법
+    if idx is not None:
+        board = mongo.db.board
+        data = board.find_one({"_id": ObjectId(idx)})
+        if data is not None:
+            result = {
+                "id": data.get("_id"),
+                "name": data.get("name"),
+                "title": data.get("title"),
+                "contents": data.get("contents"),
+                "pubdate": data.get("pubdate"),
+                "view": data.get("view"),
+            }
+            return render_template("view.html", result=result)
+    return abort(404)
 
 
 @app.route("/write", methods=["GET", "POST"])
@@ -26,9 +69,10 @@ def board_write():
             "pubdate": current_utc_time,
             "view": 0,
         }
-        x = board.insert_one(post)
-        print(x.inserted_id)
-        return str(x.inserted_id)
+        x = board.insert_one(post)  # x에 저장하고 나중에 inserted_id를 이용해 idx값 뽑아낸다.
+        return redirect(
+            url_for("board_view", idx=x.inserted_id)
+        )  # board_view()함수가 있는 url로 redirect
     else:
         return render_template("write.html")
 

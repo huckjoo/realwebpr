@@ -1,0 +1,125 @@
+{% extends "main.html" %} {% block contents %}
+<script>
+  $(document).ready(function () {
+    commentLists();
+  });
+  function addComment() {
+    $.ajax({
+      type: "POST",
+      url: "{{url_for('board_comments')}}",
+      data: $("#commentForm").serialize(),
+      success: function (data) {
+        $("#comment-name").val(""), $("#comment-desc").val(""), commentLists();
+      },
+    });
+  }
+  function commentLists() {
+    $.ajax({
+      type: "GET",
+      url: "{{url_for('comment_list',root_id=result.id)}}",
+      dataType: "json",
+      success: function (data) {
+        let c = data.lists;
+        let html = `
+        <span><h4>지난댓글</h4></span>
+        `;
+        for (let i = 0; i < c.length; i++) {
+          html += '<table class="table">';
+          html += `<tr>`;
+          html += "<td width='100'><h6>" + c[i].name + "</h6></td>";
+          html += "<td width='300'>" + c[i].comment + "</td>";
+          html +=
+            "<td class='text-right' width='200'>" + c[i].pubdate + "</td>";
+          html += "</tr>";
+          html += "</table>";
+        }
+        $("#comment-box").html(html); //왜 append로 하면 안되는지 모르겠다.
+      },
+      error: function (request, status, eroor) {
+        let msg = "ERROR:" + request.status + "<br>";
+        msg += "내용:" + request.response + "<br>" + error;
+        console.log(msg);
+      },
+    });
+  }
+</script>
+<div class="container">
+  <table class="table">
+    <tbody>
+      <tr>
+        <td colspan="2">{{result.title}}</td>
+      </tr>
+      <tr>
+        <td>{{result.name}}</td>
+        <td class="text-right">{{result.pubdate|formatdatetime}}</td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <div style="min-height: 200px">{{result.contents}}</div>
+        </td>
+      </tr>
+      <tr>
+        <td>조회수: {{result.view}}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="text-center ctrlbtns">
+    <a class="btn btn-primary" href="{{url_for('board_lists',page=page)}}"
+      >목록으로</a
+    >
+    <a class="btn btn-info" href="{{url_for('edit',idx=result.id)}}"
+      >수정하기</a
+    >
+    <a class="btn btn-danger" href="{{url_for('delete',idx=result.id)}}"
+      >삭제하기</a
+    >
+  </div>
+
+  <div class="container">
+    <form id="commentForm" action="{{url_for('board_comments')}}" method="POST">
+      <input type="hidden" name="root_id" value="{{result.id}}" />
+      <table class="table">
+        <thead>
+          <tr>
+            <th>작성자</th>
+            <th>내용</th>
+            <th>제출버튼</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <input
+                id="comment-name"
+                style="width: 100px"
+                type="text"
+                name="name"
+              />
+            </td>
+            <td>
+              <textarea
+                id="comment-desc"
+                rows="3"
+                cols="50"
+                name="comment"
+              ></textarea>
+            </td>
+            <td>
+              <a
+                href="#"
+                class="btn btn-success"
+                style="height: 65px; width: 65px"
+                onclick="addComment()"
+              >
+                댓글작성
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </div>
+  <div id="comment-box"></div>
+</div>
+{% endblock %}
