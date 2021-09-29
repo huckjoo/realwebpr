@@ -1,6 +1,13 @@
 from main import *
 
 
+@app.route("/delete_comments", methods=["POST"])
+def delete_comments():
+    id = request.form["id"]
+    db.comments.delete_one({"_id": ObjectId(id)})
+    return jsonify(result="success")
+
+
 @app.route("/comment_list/<root_id>")
 def comment_list(root_id):
     comments = db.comments.find({"root_id": str(root_id)}).sort("pubdate", -1)

@@ -3,6 +3,19 @@
   $(document).ready(function () {
     commentLists();
   });
+  function deleteComment(idx) {
+    $.ajax({
+      type: "POST",
+      url: "{{url_for('delete_comments')}}",
+      data: { id: idx },
+      success: function (response) {
+        if (response["result"] == "success") {
+          alert("삭제되었습니다.");
+          commentLists();
+        }
+      },
+    });
+  }
   function addComment() {
     $.ajax({
       type: "POST",
@@ -20,20 +33,29 @@
       dataType: "json",
       success: function (data) {
         let c = data.lists;
-        let html = `
-        <span><h4>지난댓글</h4></span>
-        `;
+        let html = "";
         for (let i = 0; i < c.length; i++) {
           html += '<table class="table">';
           html += `<tr>`;
           html += "<td width='100'><h6>" + c[i].name + "</h6></td>";
-          html += "<td width='300'>" + c[i].comment + "</td>";
+          html += "<td width='300'>" + c[i].comment;
+          html +=
+            "<a href='#' onclick='updateComment(\"" +
+            c[i].id +
+            "\")' > 수정</a>";
+          html += " | ";
+          html +=
+            "<a href='#' onclick='deleteComment(\"" +
+            c[i].id +
+            "\")' >삭제</a>";
+          html += "</td>";
           html +=
             "<td class='text-right' width='200'>" + c[i].pubdate + "</td>";
           html += "</tr>";
           html += "</table>";
         }
-        $("#comment-box").html(html); //왜 append로 하면 안되는지 모르겠다.
+        $("#comment_count").html(c.length);
+        $("#comment-box").html(html); //왜 html대신 append로 하면 안되는지 모르겠다.
       },
       error: function (request, status, eroor) {
         let msg = "ERROR:" + request.status + "<br>";
@@ -80,6 +102,8 @@
     <form id="commentForm" action="{{url_for('board_comments')}}" method="POST">
       <input type="hidden" name="root_id" value="{{result.id}}" />
       <table class="table">
+        <span>댓글 </span
+        ><span id="comment_count">0</span>
         <thead>
           <tr>
             <th>작성자</th>
