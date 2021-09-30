@@ -3,6 +3,37 @@
   $(document).ready(function () {
     commentLists();
   });
+  function updateOk(idx) {
+    let new_comment = $("#i" + idx).val();
+    $.ajax({
+      type: "POST",
+      url: "{{url_for('update_comments')}}",
+      data: { id: idx, new_comment: new_comment },
+      success: function (response) {
+        if (response["result"] == "success") {
+          commentLists();
+        }
+      },
+    });
+  }
+  function cancelUpdate(idx) {
+    let html = "";
+    let old_comment = $("#c" + idx).data("comment");
+    html += old_comment;
+    html += "<a href='#' onclick='updateComment(\"" + idx + "\")' > 수정</a>";
+    html += " | ";
+    html += "<a href='#' onclick='deleteComment(\"" + idx + "\")' >삭제</a>";
+    $("#c" + idx).html(html);
+  }
+  function updateComment(idx) {
+    let html = "";
+    let old_comment = $("#c" + idx).data("comment");
+    html += "<textarea id='i" + idx + "'>" + old_comment + "</textarea>";
+    html += "<a href='#' onclick='cancelUpdate(\"" + idx + "\")'>취소</a>";
+    html += " | ";
+    html += "<a href='#' onclick='updateOk(\"" + idx + "\")'>수정완료</a>";
+    $("#c" + idx).html(html);
+  }
   function deleteComment(idx) {
     $.ajax({
       type: "POST",
@@ -38,7 +69,13 @@
           html += '<table class="table">';
           html += `<tr>`;
           html += "<td width='100'><h6>" + c[i].name + "</h6></td>";
-          html += "<td width='300'>" + c[i].comment;
+          html +=
+            "<td id='c" +
+            c[i].id +
+            "'data-comment='" +
+            c[i].comment +
+            "'  width='300'>" +
+            c[i].comment;
           html +=
             "<a href='#' onclick='updateComment(\"" +
             c[i].id +

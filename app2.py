@@ -1,6 +1,14 @@
 from main import *
 
 
+@app.route("/update_comments", methods=["POST"])
+def update_comments():
+    idx = request.form["id"]
+    new_comment = request.form["new_comment"]
+    db.comments.update_one({"_id":ObjectId(idx)},{"$set":{"comment":new_comment}})
+    return jsonify(result="success")
+
+
 @app.route("/delete_comments", methods=["POST"])
 def delete_comments():
     id = request.form["id"]
